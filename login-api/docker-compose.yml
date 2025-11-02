@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: login_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/login_db
+      PORT: 3000
+      JWT_SECRET: changeme
+      # Em desenvolvimento não habilitar deploy automático de migrations.
+      PRISMA_MIGRATE: 'none'
+    ports:
+      - '3000:3000'
+    # volumes úteis em dev para hot-reload:
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: npm run start:dev
+
+volumes:
+  db_data:

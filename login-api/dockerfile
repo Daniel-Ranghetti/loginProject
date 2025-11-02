@@ -1,0 +1,43 @@
+# Stage de build (instala dev deps, gera prisma client e builda TS)
+FROM node:20-alpine AS build
+WORKDIR /app
+
+# Dependências (usa cache de camadas)
+COPY package*.json ./
+RUN npm ci
+
+# Copia schema do Prisma primeiro (se existir) para aproveitar cache
+COPY prisma ./prisma
+
+# Copia o resto do código e gera client + build
+COPY . .
+# Gera prisma client (se houver schema) - tolera falha
+RUN npx prisma generate || true
+RUN npm run build
+
+# Stage de produção (imagem final mais leve)
+FROM node:20-alpine AS prod
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copia só package.json para instalar runtime deps
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copia artefatos gerados do build
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+
+# Copia entrypoint e dá permissão
+COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+# Rodar como usuário não-root por segurança
+RUN addgroup -S app && adduser -S app -G app
+RUN chown -R app:app /app
+USER app
+
+EXPOSE 3000
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["node", "dist/main"]
