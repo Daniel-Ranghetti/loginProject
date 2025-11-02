@@ -1,5 +1,5 @@
 import React, { memo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
 import { FaFacebookF, FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -24,7 +24,6 @@ export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
         throw new Error("Resposta inválida do servidor: token não encontrado.");
       }
       localStorage.setItem("token", token);
-      // redireciona para página Hello
       navigate("/hello");
     } catch (error) {
       if (error instanceof Error) {
@@ -37,14 +36,6 @@ export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
   return (
     <div className={className}>
       <div className="bg-white/95 shadow-md rounded-lg p-8 w-full max-w-md">
-        <div className="mb-6 text-center">
-          <img
-            src="/mazagas-logo.webp"
-            alt="Logo Mazagas"
-            className="mx-auto w-36"
-          />
-        </div>
-
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">Entrar</h2>
 
         {error && (
@@ -136,9 +127,9 @@ export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
 
           <p className="text-xs text-gray-400 mt-3 text-center">
             Não tem conta?{" "}
-            <a href="#" className="text-indigo-600 hover:underline">
+            <Link to="/register" className="text-indigo-600 hover:underline">
               Criar conta
-            </a>
+            </Link>
           </p>
         </form>
       </div>
