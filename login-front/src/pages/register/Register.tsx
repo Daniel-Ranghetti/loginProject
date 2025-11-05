@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./Register.module.css";
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState("");
@@ -42,52 +41,67 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <form className={styles.card} onSubmit={handleSubmit}>
-        <h2>Registrar</h2>
+    <div className="flex items-center justify-center p-8 min-h-[60vh]">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[420px] p-7 rounded-lg bg-white flex flex-col gap-3 shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
+      >
+        <h2 className="mb-2 text-center text-xl font-semibold">Registrar</h2>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {error && (
+          <div className="text-red-700 bg-red-100 p-2 rounded-md text-sm">
+            {error}
+          </div>
+        )}
 
-        <label>
+        <label className="flex flex-col text-sm">
           Nome
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Seu nome"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm">
           E-mail
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="seu@exemplo.com"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm">
           Senha
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Senha"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <label>
+        <label className="flex flex-col text-sm">
           Confirmar senha
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Repita a senha"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <button type="submit" disabled={loading}>
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-2 py-2.5 px-4 bg-blue-600 text-white rounded-md font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
+        >
           {loading ? "Registrando..." : "Criar conta"}
         </button>
       </form>
