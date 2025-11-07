@@ -17,7 +17,7 @@ export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
     setLoading(true);
     try {
       // Ajuste o caminho caso seu backend use outro
-      const res = await api.post("/auth/login", { email, password });
+      const res = await api.post("/users/login", { email, password });
       // espera-se que o backend retorne { accessToken: '...' } ou { access_token: '...' }
       const token = res.data?.accessToken ?? res.data?.access_token ?? null;
       if (!token) {

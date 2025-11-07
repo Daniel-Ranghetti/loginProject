@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../services/api";
+import axios from "axios";
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState("");
@@ -8,11 +10,13 @@ const RegisterPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
 
     if (!name.trim() || !email.trim() || !password) {
       setError("Preencha todos os campos.");
@@ -29,12 +33,43 @@ const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      // Ajuste a chamada ao backend conforme sua API:
-      // await api.post("/auth/register", { name, email, password });
-      // por enquanto apenas redireciona para o login
-      navigate("/login");
+      // Chamando o endpoint que você informou
+      await api.post("/users/register", {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      // O backend não retorna token no registro, então apenas mostramos um toast de sucesso
+      setSuccessMessage("Conta criada com sucesso! Redirecionando para login...");
+      // opção: limpar campos
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+
+      // aguarda 1.5s para o usuário ler o toast e então redireciona para /login
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
     } catch (err: any) {
-      setError(err?.message || "Erro ao registrar.");
+      if (axios.isAxiosError(err)) {
+        const status = err.response?.status;
+        const data = err.response?.data;
+
+        if (status === 409) {
+          setError("E-mail já cadastrado.");
+        } else if (data?.errors && Array.isArray(data.errors)) {
+          // caso o backend retorne um array de erros de validação
+          setError(data.errors.map((i: any) => i.msg || i).join(" "));
+        } else if (data?.message) {
+          setError(data.message);
+        } else {
+          setError("Erro ao registrar. Tente novamente.");
+        }
+      } else {
+        setError(err?.message || "Erro ao registrar.");
+      }
     } finally {
       setLoading(false);
     }
@@ -48,51 +83,75 @@ const RegisterPage: React.FC = () => {
       >
         <h2 className="mb-2 text-center text-xl font-semibold">Registrar</h2>
 
+        {/* Toast/Alert de sucesso */}
+        {successMessage && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="text-green-800 bg-green-100 p-2 rounded-md text-sm"
+          >
+            {successMessage}
+          </div>
+        )}
+
+        {/* Erro */}
         {error && (
-          <div className="text-red-700 bg-red-100 p-2 rounded-md text-sm">
+          <div role="alert" className="text-red-700 bg-red-100 p-2 rounded-md text-sm">
             {error}
           </div>
         )}
 
-        <label className="flex flex-col text-sm">
+        <label htmlFor="name" className="flex flex-col text-sm">
           Nome
           <input
+            id="name"
+            name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Seu nome"
+            autoComplete="name"
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <label className="flex flex-col text-sm">
+        <label htmlFor="email" className="flex flex-col text-sm">
           E-mail
           <input
+            id="email"
+            name="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="seu@exemplo.com"
+            autoComplete="email"
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <label className="flex flex-col text-sm">
+        <label htmlFor="password" className="flex flex-col text-sm">
           Senha
           <input
+            id="password"
+            name="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Senha"
+            autoComplete="new-password"
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
 
-        <label className="flex flex-col text-sm">
+        <label htmlFor="confirmPassword" className="flex flex-col text-sm">
           Confirmar senha
           <input
+            id="confirmPassword"
+            name="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Repita a senha"
+            autoComplete="new-password"
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
