@@ -1,31 +1,55 @@
 import React, { memo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
-import { FaFacebookF, FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
+export const AuthPage = React.memo(({ className }: React.ComponentProps<"form">) => {
+  type Mode = "login" | "register";
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+
+    const switchMode = (m: Mode) => {
+    setError(null);
+    setSuccessMessage(null);
+    setMode(m);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      // Ajuste o caminho caso seu backend use outro
+      if (mode === "login") {
       const res = await api.post("/users/login", { email, password });
-      // espera-se que o backend retorne { accessToken: '...' } ou { access_token: '...' }
-      const token = res.data?.accessToken ?? res.data?.access_token ?? null;
+      const token = res.data?.access_token ?? null;
       if (!token) {
         throw new Error("Resposta inválida do servidor: token não encontrado.");
       }
       localStorage.setItem("token", token);
       navigate("/hello");
-    } catch (error) {
+    }
+    if (mode === "register") {
+      {
+      await api.post("/users/register", {
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      setSuccessMessage("Conta criada com sucesso! Redirecionando para login...");
+      // aguarda 1.5s para o usuário ler o toast e então redireciona para /login
+      setTimeout(() => {
+        navigate("/login");
+      }, 1500);
+    }
+  };
+} catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       }
@@ -33,6 +57,7 @@ export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
       setLoading(false);
     }
   };
+
   return (
     <div className={className}>
       <div className="bg-white/95 shadow-md rounded-lg p-8 w-full max-w-md">
@@ -101,35 +126,20 @@ export const LoginForm = memo(({ className }: React.ComponentProps<"form">) => {
           </div>
 
           <div className="flex gap-3">
-            <button
-              type="button"
-              className="flex-1 inline-flex items-center justify-center gap-2 border rounded-md py-2 bg-white text-sm shadow-sm hover:shadow
-                         transition"
-            >
-              <FaFacebookF className="text-blue-600" />
-              <span>Facebook</span>
-            </button>
 
             <button
               type="button"
               className="inline-flex items-center justify-center gap-2 border rounded-md py-2 px-3 bg-white text-sm shadow-sm hover:shadow transition"
             >
-              <FcGoogle />
-            </button>
-
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 border rounded-md py-2 px-3 bg-black text-white shadow-sm hover:opacity-90 transition"
-            >
-              <FaApple />
+              <FcGoogle  />
             </button>
           </div>
 
           <p className="text-xs text-gray-400 mt-3 text-center">
             Não tem conta?{" "}
-            <Link to="/register" className="text-indigo-600 hover:underline">
-              Criar conta
-            </Link>
+            <button type="button" onClick={() => switchMode("register")} className="text-indigo-600 hover:underline">
+                    Criar conta
+                  </button>
           </p>
         </form>
       </div>

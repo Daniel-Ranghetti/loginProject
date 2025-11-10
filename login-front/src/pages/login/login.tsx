@@ -1,15 +1,17 @@
-import { LoginForm } from "./login_form";
+import { AuthPage } from "./login_form";
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-3 bg-gray-50">
-      {/* coluna do form (esquerda em telas grandes) */}
+
+      {/* coluna do form*/}
       <div className="flex items-center justify-center p-6 lg:col-span-1">
         <div className="w-full max-w-md">
-          <LoginForm />
+        <h1 className="text-4xl font-semibold mb-14 text-gray-800 text-center">Login-Project</h1>
+          <AuthPage/>
         </div>
       </div>
-      {/* coluna do hero (direita em telas grandes) */}
+      {/* coluna do video*/}
       <div className="hidden lg:block relative lg:col-span-2">
         <video
           src="/VIDEO MUITO FODA.mp4"
@@ -18,10 +20,6 @@ export default function LoginPage() {
           loop
           muted
         />
-        {/* <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(...)" }}
-        /> */}
       </div>
     </div>
   );
