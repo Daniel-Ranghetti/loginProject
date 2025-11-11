@@ -1,3 +1,4 @@
+import { RegisterPage } from "../register/Register";
 import { AuthPage } from "./login_form";
 
 export default function LoginPage() {
@@ -9,6 +10,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
         <h1 className="text-4xl font-semibold mb-14 text-gray-800 text-center">Login-Project</h1>
           <AuthPage/>
+          <RegisterPage/>
         </div>
       </div>
       {/* coluna do video*/}

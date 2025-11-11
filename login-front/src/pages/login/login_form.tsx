@@ -1,55 +1,32 @@
 import React, { memo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../../services/api";
+import { FaFacebookF, FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export const AuthPage = React.memo(({ className }: React.ComponentProps<"form">) => {
-  type Mode = "login" | "register";
-  const [mode, setMode] = useState<Mode>("login");
+export const AuthPage = memo(({ className }: React.ComponentProps<"form">) => {
+  const [visible, setVisible] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
-
-    const switchMode = (m: Mode) => {
-    setError(null);
-    setSuccessMessage(null);
-    setMode(m);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      if (mode === "login") {
+      // Ajuste o caminho caso seu backend use outro
       const res = await api.post("/users/login", { email, password });
-      const token = res.data?.access_token ?? null;
+      // espera-se que o backend retorne { accessToken: '...' } ou { access_token: '...' }
+      const token = res.data?.accessToken ?? res.data?.access_token ?? null;
       if (!token) {
         throw new Error("Resposta inválida do servidor: token não encontrado.");
       }
       localStorage.setItem("token", token);
       navigate("/hello");
-    }
-    if (mode === "register") {
-      {
-      await api.post("/users/register", {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        password,
-      });
-      setSuccessMessage("Conta criada com sucesso! Redirecionando para login...");
-      // aguarda 1.5s para o usuário ler o toast e então redireciona para /login
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
-    }
-  };
-} catch (error) {
+    } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
       }
@@ -57,12 +34,33 @@ export const AuthPage = React.memo(({ className }: React.ComponentProps<"form">)
       setLoading(false);
     }
   };
-
+  if (!visible) {
+    return (
+      <div className={"flex items-center justify-center p-6"}>
+        <div className="w-full max-w-md">
+          <button
+            type="button"
+            onClick={() => setVisible(true)}
+            className="px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md shadow-sm hover:bg-indigo-100"
+          >
+            Mostrar formulário de login
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={className}>
       <div className="bg-white/95 shadow-md rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">Entrar</h2>
-
+        <button
+            type="button"
+            onClick={() => setVisible(false)}
+            aria-label="Fechar formulário de login"
+            className="ml-4 text-sm text-gray-500 hover:text-gray-700"
+          >
+            ✕
+          </button>
         {error && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
             {error}
@@ -126,23 +124,40 @@ export const AuthPage = React.memo(({ className }: React.ComponentProps<"form">)
           </div>
 
           <div className="flex gap-3">
+            <button
+              type="button"
+              className="flex-1 inline-flex items-center justify-center gap-2 border rounded-md py-2 bg-white text-sm shadow-sm hover:shadow
+                         transition"
+            >
+              <FaFacebookF className="text-blue-600" />
+              <span>Facebook</span>
+            </button>
 
             <button
               type="button"
               className="inline-flex items-center justify-center gap-2 border rounded-md py-2 px-3 bg-white text-sm shadow-sm hover:shadow transition"
             >
-              <FcGoogle  />
+              <FcGoogle />
+            </button>
+
+            <button
+              type="button"
+              className="inline-flex items-center justify-center gap-2 border rounded-md py-2 px-3 bg-black text-white shadow-sm hover:opacity-90 transition"
+            >
+              <FaApple />
             </button>
           </div>
 
           <p className="text-xs text-gray-400 mt-3 text-center">
             Não tem conta?{" "}
-            <button type="button" onClick={() => switchMode("register")} className="text-indigo-600 hover:underline">
-                    Criar conta
-                  </button>
+            <Link to="/register" className="text-indigo-600 hover:underline">
+              Criar conta
+            </Link>
           </p>
         </form>
       </div>
     </div>
   );
-});
+}
+
+);

@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import axios from "axios";
 
-const RegisterPage: React.FC = () => {
+export const RegisterPage: React.FC = () => {
+  
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,7 +75,7 @@ const RegisterPage: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="flex items-center justify-center p-8 min-h-[60vh]">
       <form
@@ -168,4 +169,3 @@ const RegisterPage: React.FC = () => {
   );
 };
 
-export default RegisterPage;
