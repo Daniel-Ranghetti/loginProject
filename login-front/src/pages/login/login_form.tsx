@@ -4,10 +4,12 @@ import api from "../../services/api";
 import { FaFacebookF, FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 
-export const AuthPage = memo(({ className }: React.ComponentProps<"form">) => {
-  const [visible, setVisible] = useState(true);
+const AuthPageComponent: React.FC<React.ComponentProps<'form'>> = (props) => {
+  const [name, setName] = useState("");
+  const [currentForm, setCurrentForm] = useState(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -17,10 +19,8 @@ export const AuthPage = memo(({ className }: React.ComponentProps<"form">) => {
     setError(null);
     setLoading(true);
     try {
-      // Ajuste o caminho caso seu backend use outro
       const res = await api.post("/users/login", { email, password });
-      // espera-se que o backend retorne { accessToken: '...' } ou { access_token: '...' }
-      const token = res.data?.accessToken ?? res.data?.access_token ?? null;
+      const token = res.data?.access_token ?? null;
       if (!token) {
         throw new Error("Resposta inválida do servidor: token não encontrado.");
       }
@@ -34,33 +34,28 @@ export const AuthPage = memo(({ className }: React.ComponentProps<"form">) => {
       setLoading(false);
     }
   };
-  if (!visible) {
-    return (
-      <div className={"flex items-center justify-center p-6"}>
-        <div className="w-full max-w-md">
-          <button
-            type="button"
-            onClick={() => setVisible(true)}
-            className="px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md shadow-sm hover:bg-indigo-100"
-          >
-            Mostrar formulário de login
-          </button>
-        </div>
-      </div>
-    );
-  }
+
+  const typeForm = [
+    {
+      id: 'login',
+      title: "login",
+    },
+    {
+      id: 'register',
+      title: "register",
+    },
+  ]
+
+function handleForm() {
+  setCurrentForm((prevState) => prevState + 1);
+}
+
   return (
-    <div className={className}>
-      <div className="bg-white/95 shadow-md rounded-lg p-8 w-full max-w-md">
+    <>
+      {typeForm[currentForm].id === 'login' && (
+        
+        <div className="bg-white/95 shadow-md rounded-lg p-8 w-full max-w-md">
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">Entrar</h2>
-        <button
-            type="button"
-            onClick={() => setVisible(false)}
-            aria-label="Fechar formulário de login"
-            className="ml-4 text-sm text-gray-500 hover:text-gray-700"
-          >
-            ✕
-          </button>
         {error && (
           <div className="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
             {error}
@@ -150,14 +145,87 @@ export const AuthPage = memo(({ className }: React.ComponentProps<"form">) => {
 
           <p className="text-xs text-gray-400 mt-3 text-center">
             Não tem conta?{" "}
-            <Link to="/register" className="text-indigo-600 hover:underline">
+            <button onClick={handleForm} className="text-indigo-600 hover:underline">
               Criar conta
-            </Link>
+            </button>
           </p>
         </form>
       </div>
-    </div>
-  );
-}
+      )}
+    {typeForm[currentForm].id === 'register' && (
+      <div className="flex items-center justify-center p-8 min-h-[60vh]">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-[420px] p-7 rounded-lg bg-white flex flex-col gap-3 shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
+      >
+        <h2 className="mb-2 text-center text-xl font-semibold">Registrar</h2>
+        <label htmlFor="name" className="flex flex-col text-sm">
+          Nome
+          <input
+            id="name"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Seu nome"
+            autoComplete="name"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
+          />
+        </label>
 
-);
+        <label htmlFor="email" className="flex flex-col text-sm">
+          E-mail
+          <input
+            id="email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="seu@exemplo.com"
+            autoComplete="email"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
+          />
+        </label>
+
+        <label htmlFor="password" className="flex flex-col text-sm">
+          Senha
+          <input
+            id="password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Senha"
+            autoComplete="new-password"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
+          />
+        </label>
+
+        <label htmlFor="confirmPassword" className="flex flex-col text-sm">
+          Confirmar senha
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repita a senha"
+            autoComplete="new-password"
+            className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
+          />
+        </label>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="mt-2 py-2.5 px-4 bg-blue-600 text-white rounded-md font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {loading ? "Registrando..." : "Criar conta"}
+        </button>
+      </form>
+    </div>
+)}
+    </>
+  );
+};
+
+export const AuthPage = memo(AuthPageComponent);

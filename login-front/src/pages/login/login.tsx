@@ -10,7 +10,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
         <h1 className="text-4xl font-semibold mb-14 text-gray-800 text-center">Login-Project</h1>
           <AuthPage/>
-          <RegisterPage/>
+          {/* <RegisterPage/> */}
         </div>
       </div>
       {/* coluna do video*/}
