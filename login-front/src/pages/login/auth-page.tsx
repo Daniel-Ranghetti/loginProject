@@ -52,17 +52,11 @@ function handleForm() {
 
   return (
     <>
-      {typeForm[currentForm].id === 'login' && (
-        
-        <div className="bg-white/95 shadow-md rounded-lg p-8 w-full max-w-md">
+      {typeForm[currentForm].id === 'login' && (    
+        <div>
         <h2 className="text-2xl font-semibold mb-4 text-gray-800">Entrar</h2>
-        {error && (
-          <div className="mb-4 text-sm text-red-700 bg-red-50 p-3 rounded">
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
+          
           <label className="block text-sm text-gray-600">
             <span className="text-xs text-gray-500">Email</span>
             <input
@@ -75,7 +69,6 @@ function handleForm() {
               placeholder="seu@exemplo.com"
             />
           </label>
-
           <label className="block text-sm text-gray-600">
             <span className="text-xs text-gray-500">Senha</span>
             <input
@@ -89,7 +82,6 @@ function handleForm() {
               placeholder="••••••••"
             />
           </label>
-
           <div className="flex items-center justify-between text-sm">
             <label className="inline-flex items-center gap-2 text-gray-600">
               <input
@@ -102,7 +94,6 @@ function handleForm() {
               Esqueci a senha
             </a>
           </div>
-
           <button
             type="submit"
             disabled={loading}
@@ -117,32 +108,12 @@ function handleForm() {
             <div className="text-xs text-gray-400">ou</div>
             <div className="flex-1 h-px bg-gray-200" />
           </div>
-
-          <div className="flex gap-3">
             <button
               type="button"
-              className="flex-1 inline-flex items-center justify-center gap-2 border rounded-md py-2 bg-white text-sm shadow-sm hover:shadow
-                         transition"
-            >
-              <FaFacebookF className="text-blue-600" />
-              <span>Facebook</span>
-            </button>
-
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 border rounded-md py-2 px-3 bg-white text-sm shadow-sm hover:shadow transition"
+              className="items-center border rounded-md py-2 px-3"
             >
               <FcGoogle />
             </button>
-
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 border rounded-md py-2 px-3 bg-black text-white shadow-sm hover:opacity-90 transition"
-            >
-              <FaApple />
-            </button>
-          </div>
-
           <p className="text-xs text-gray-400 mt-3 text-center">
             Não tem conta?{" "}
             <button onClick={handleForm} className="text-indigo-600 hover:underline">
@@ -153,12 +124,10 @@ function handleForm() {
       </div>
       )}
     {typeForm[currentForm].id === 'register' && (
-      <div className="flex items-center justify-center p-8 min-h-[60vh]">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-[420px] p-7 rounded-lg bg-white flex flex-col gap-3 shadow-[0_6px_20px_rgba(0,0,0,0.08)]"
-      >
-        <h2 className="mb-2 text-center text-xl font-semibold">Registrar</h2>
+        className="flex flex-col gap-4">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Registrar</h2>
         <label htmlFor="name" className="flex flex-col text-sm">
           Nome
           <input
@@ -171,7 +140,6 @@ function handleForm() {
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
-
         <label htmlFor="email" className="flex flex-col text-sm">
           E-mail
           <input
@@ -185,7 +153,6 @@ function handleForm() {
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
-
         <label htmlFor="password" className="flex flex-col text-sm">
           Senha
           <input
@@ -199,7 +166,6 @@ function handleForm() {
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
-
         <label htmlFor="confirmPassword" className="flex flex-col text-sm">
           Confirmar senha
           <input
@@ -213,7 +179,6 @@ function handleForm() {
             className="mt-1 p-2.5 border border-[#d0d7de] rounded-md text-sm"
           />
         </label>
-
         <button
           type="submit"
           disabled={loading}
@@ -222,7 +187,6 @@ function handleForm() {
           {loading ? "Registrando..." : "Criar conta"}
         </button>
       </form>
-    </div>
 )}
     </>
   );
