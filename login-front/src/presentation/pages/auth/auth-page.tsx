@@ -13,13 +13,13 @@ export default function LoginPage() {
       </div>
       {/* coluna do video*/}
       <div className="hidden lg:block relative lg:col-span-7">
-        <video
+        {/* <video
           src="/VIDEO MUITO FODA.mp4"
           className="absolute inset-0 w-full h-full object-cover brightness-75"
           autoPlay
           loop
           muted
-        />
+        /> */}
       </div>
     </div>
   );
