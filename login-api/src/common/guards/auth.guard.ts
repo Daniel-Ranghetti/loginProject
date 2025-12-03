@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
+
 @Injectable()
 export class AuthGuard implements CanActivate {
     constructor(
@@ -25,7 +26,7 @@ export class AuthGuard implements CanActivate {
             return true;
         }
         const request = context.switchToHttp().getRequest<Request>();
-        const token = this.extractTokenFromHeader(request);
+        const token = request.cookies?.['access_token'];
         
         if (!token) {
             throw new UnauthorizedException();
@@ -46,4 +47,14 @@ export class AuthGuard implements CanActivate {
         const [type, token] = request.headers.authorization?.split(' ') ?? [];
         return type === 'Bearer' ? token : undefined;
     }
+}
+
+@Injectable()
+export class IsMineGuard implements CanActivate {
+  constructor() {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    return parseInt(request.params.id) === request.user.sub;
+  }
 }

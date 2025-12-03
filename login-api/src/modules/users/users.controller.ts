@@ -8,8 +8,10 @@ import {
   Patch,
   Post,
   Request,
+  Res,
   UseGuards
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { CreateUserDto } from './dtos/criar-usuário.dto';
 import { UpdateUsertDto } from './dtos/atualizar-usuário.dto';
 import { LoginUserDto } from './dtos/login-user.dto';
@@ -20,16 +22,9 @@ import type { UserPayload } from './interfaces/users-login.interface';
 import type { ExpressRequestWithUser } from './interfaces/express-request-with-user.interface';
 import { Public } from '../../common/decorators/public.decorator';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { IsMineGuard }from '../../common/guards/auth.guard'
 
-@Injectable()
-export class IsMineGuard implements CanActivate {
-  constructor() {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    return parseInt(request.params.id) === request.user.sub;
-  }
-}
 
 @Controller('users')
 export class UsersController {
@@ -45,8 +40,20 @@ export class UsersController {
   }
   @Public()
   @Post('login')
-  loginUser(@Body() loginUserDto: LoginUserDto): Promise<LoginResponse> {
-    return this.usersService.loginUser(loginUserDto);
+  async loginUser(
+    @Body() loginUserDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponse> {
+    const loginResponse = await this.usersService.loginUser(loginUserDto);
+    
+    res.cookie('access_token', loginResponse.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 10 * 1000, // 10 segundos
+    });
+    
+    return loginResponse;
   }
 
 
