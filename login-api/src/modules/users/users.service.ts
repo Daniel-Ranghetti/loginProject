@@ -48,33 +48,28 @@ export class UsersService {
   }
 
   async loginUser(loginUserDto: LoginUserDto): Promise<LoginResponse> {
-    try {
-      //encontra o usuario pelo email
-      const user = await this.prisma.user.findUnique({
-        where: { email: loginUserDto.email },
-      });
-      //checa se o usuario existe
-      if (!user) {
-        throw new NotFoundException('Usuario não encontrado');
-      }
-      //checa se a senha ta correta comparando com a senha hashada na database
-      if (!(await compare(loginUserDto.password, user.password))) {
-        throw new UnauthorizedException('Credencial Invalida');
-      }
-      const payload: UserPayload = {
-        // cria payload para a JWT
-        sub: user.id,
-        email: user.email,
-        name: user.name,
-      };
-      return {
-        //retorna o token de acesso
-        access_token: await this.jwtService.signAsync(payload),
-      };
-    } catch (error) {
-      //Erro qualquer
-      throw new HttpException(error, 500);
+    //encontra o usuario pelo email
+    const user = await this.prisma.user.findUnique({
+      where: { email: loginUserDto.email },
+    });
+    //checa se o usuario existe
+    if (!user) {
+      throw new NotFoundException('Usuario não encontrado');
     }
+    //checa se a senha ta correta comparando com a senha hashada na database
+    if (!(await compare(loginUserDto.password, user.password))) {
+      throw new UnauthorizedException('Credencial Invalida');
+    }
+    const payload: UserPayload = {
+      // cria payload para a JWT
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+    };
+    return {
+      //retorna o token de acesso
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 
   async updateUser(

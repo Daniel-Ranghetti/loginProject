@@ -15,7 +15,7 @@ const AuthPageComponent: React.FC<React.ComponentProps<'form'>> = (props) => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -27,10 +27,37 @@ const AuthPageComponent: React.FC<React.ComponentProps<'form'>> = (props) => {
       }
       localStorage.setItem("token", token);
       navigate("/hello");
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "Erro ao fazer login";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem");
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      await api.post("/users/register", { name, email, password });
+      // Após registrar, faz login automaticamente
+      const res = await api.post("/users/login", { email, password });
+      const token = res.data?.access_token ?? null;
+      if (!token) {
+        throw new Error("Resposta inválida do servidor: token não encontrado.");
       }
+      localStorage.setItem("token", token);
+      navigate("/hello");
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "Erro ao registrar";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -59,9 +86,10 @@ function handleForm() {
       {typeForm[currentForm].id === 'login' && (    
         <div className="pt-10">
         <h2 className="text-2xl font-semibold mb-4">Entrar</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
+        <form onSubmit={handleLoginSubmit} className="space-y-4">
             <Input className="h-12" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email"/>
-            <Input className="h-12" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Senha"/>
+            <Input className="h-12" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Senha"/>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <Input type="checkbox" className="h-4 w-4 rounded" /> Manter login
@@ -74,12 +102,12 @@ function handleForm() {
             {loading ? "Entrando..." : "Entrar"}
           </Button>
           <div className="flex justify-center mt-3">
-            <Button className="bg-gray-200  text-black">
+            <Button type="button" className="bg-gray-200 text-black">
               <FcGoogle/> Entrar pelo Google
             </Button>
           </div>
           <div className="mt-3 pt-10 text-center">
-            <Button onClick={handleForm} className="text-md bg-transparent hover:bg-transparent hover:underline text-gray-500">
+            <Button type="button" onClick={handleForm} className="text-md bg-transparent hover:bg-transparent hover:underline text-gray-500">
               Criar uma conta
             </Button>
           </div>
@@ -89,18 +117,19 @@ function handleForm() {
 
     {typeForm[currentForm].id === "register" && (
         <div className="pt-12">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-4">
             <h2 className="text-2xl font-semibold mb-4 text-gray-800">Registrar</h2>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" />
-            <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-            <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" />
-            <Input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirme a senha" />
-            <Button disabled={loading} className="w-full bg-indigo-800 hover:bg-indigo-600">
+            {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
+            <Input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Nome" />
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="Email" />
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Senha" />
+            <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required placeholder="Confirme a senha" />
+            <Button type="submit" disabled={loading} className="w-full bg-indigo-800 hover:bg-indigo-600">
               {loading ? "Registrando..." : "Criar conta"}
             </Button>
 
             <div className=" mt-3 text-center">
-              <Button onClick={handleForm} className=" text-md bg-transparent hover:bg-transparent text-gray-500 hover:underline">
+              <Button type="button" onClick={handleForm} className=" text-md bg-transparent hover:bg-transparent text-gray-500 hover:underline">
                 Ja possuo uma conta
               </Button>
             </div>
