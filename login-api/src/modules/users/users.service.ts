@@ -7,12 +7,13 @@ import {
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/core/services/prisma.service';
-import { CreateUserDto } from './dtos/criar-usuário.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { hash, compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginUserDto } from './dtos/login-user.dto';
 import { LoginResponse, UserPayload } from './interfaces/users-login.interface';
-import { UpdateUsertDto } from './dtos/atualizar-usuário.dto';
+import { UpdateUsertDto } from './dtos/update-user.dto';
+import { InternalServerErrorException } from '@nestjs/common/exceptions/internal-server-error.exception';
 
 @Injectable()
 export class UsersService {
@@ -25,6 +26,14 @@ export class UsersService {
     createUserDto: CreateUserDto,
   ): Promise<Omit<User, 'password'>> {
     try {
+      // Checar se já existe usuário com o mesmo email
+      const existing = await this.prisma.user.findUnique({
+        where: { email: createUserDto.email },
+      });
+
+      if (existing) {
+        throw new ConflictException('Email já registrado');
+      }
       //Criar um novo usuario usando o prisma client
       const newUser = await this.prisma.user.create({
         data: {
@@ -33,17 +42,10 @@ export class UsersService {
           name: createUserDto.name,
         },
       });
-      //remove a senha da resposta
       const { password, ...userWithoutPassword } = newUser;
       return userWithoutPassword;
     } catch (error) {
-      // checa se o email ja ta registrado e mostra o erro
-      if (error.code === 'P2002') {
-        throw new ConflictException('Email already registered');
-      }
-
-      // da um erro qualquer
-      throw new HttpException(error, 500);
+      throw new InternalServerErrorException('Erro ao criar usuário');
     }
   }
 
@@ -78,9 +80,22 @@ export class UsersService {
   ): Promise<Omit<User, 'password'>> {
     try {
       // Encontra o usuario pelo id. se não encontra da erro
-      await this.prisma.user.findUniqueOrThrow({
+      const existingUser = await this.prisma.user.findUnique({
         where: { id },
       });
+
+      if (!existingUser) {
+        throw new NotFoundException(`Usuário com id ${id} não encontrado`);
+      }
+      if (updateUserDto.email) {
+        const userWithEmail = await this.prisma.user.findUnique({
+          where: { email: updateUserDto.email },
+        });
+
+        if (userWithEmail && userWithEmail.id !== id) {
+          throw new ConflictException('Email já registrado por outro usuário');
+        }
+      }
 
       //atualiza usuario usando o prisma client
       const updatedUser = await this.prisma.user.update({
@@ -98,41 +113,26 @@ export class UsersService {
       const { password, ...userWithoutPassword } = updatedUser;
       return userWithoutPassword;
     } catch (error) {
-      //checa se o usuario é encontrado e da o erro
-      if (error.code === 'P2025') {
-        throw new NotFoundException(`User with id ${id} not found`);
-      }
-      //checa de o email ja existe e da erro
-      if (error.code === 'P2002') {
-        throw new ConflictException('Email already registered');
-      }
-
-      //da erro qualquer
-      throw new HttpException(error, 500);
+      throw new InternalServerErrorException('Erro ao atualizar usuário');
     }
   }
 
   async deleteUser(id: number): Promise<string> {
     try {
-      // find user by id. If not found, throw error
-      const user = await this.prisma.user.findUniqueOrThrow({
+      const user = await this.prisma.user.findUnique({
         where: { id },
       });
+      if (!user) {
+        throw new NotFoundException(`Usuário com id ${id} não encontrado`);
+      }
 
-      // delete user using prisma client
       await this.prisma.user.delete({
         where: { id },
       });
 
-      return `User with id ${user.id} deleted`;
+      return `Usuário com id ${user.id} deletado`;
     } catch (error) {
-      // check if user not found and throw error
-      if (error.code === 'P2025') {
-        throw new NotFoundException(`User with id ${id} not found`);
-      }
-
-      // throw error if any
-      throw new HttpException(error, 500);
+      throw new InternalServerErrorException('Erro ao deletar usuário');
     }
   }
 }
