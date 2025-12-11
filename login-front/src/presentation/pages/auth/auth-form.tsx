@@ -11,6 +11,7 @@ const AuthPageComponent: React.FC<React.ComponentProps<'form'>> = (props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [keepLogged, setKeepLogged] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -20,12 +21,8 @@ const AuthPageComponent: React.FC<React.ComponentProps<'form'>> = (props) => {
     setError(null);
     setLoading(true);
     try {
-      const res = await api.post("/users/login", { email, password });
-      const token = res.data?.access_token ?? null;
-      if (!token) {
-        throw new Error("Resposta inválida do servidor: token não encontrado.");
-      }
-      localStorage.setItem("token", token);
+      await api.post("/users/login", { email, password, keepLogged });
+      // Cookie é definido automaticamente pelo navegador
       navigate("/hello");
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message || "Erro ao fazer login";
@@ -48,12 +45,8 @@ const AuthPageComponent: React.FC<React.ComponentProps<'form'>> = (props) => {
     try {
       await api.post("/users/register", { name, email, password });
       // Após registrar, faz login automaticamente
-      const res = await api.post("/users/login", { email, password });
-      const token = res.data?.access_token ?? null;
-      if (!token) {
-        throw new Error("Resposta inválida do servidor: token não encontrado.");
-      }
-      localStorage.setItem("token", token);
+      await api.post("/users/login", { email, password });
+      // Cookie é definido automaticamente pelo navegador
       navigate("/hello");
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message || "Erro ao registrar";
@@ -92,7 +85,7 @@ function handleForm() {
             <Input className="h-12" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Senha"/>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <Input type="checkbox" className="h-4 w-4 rounded" /> Manter login
+              <Input type="checkbox" className="h-4 w-4 rounded" onChange={(e) => setKeepLogged(e.target.checked)} /> Manter login
             </div>
             <a href="#" className="text-gray-600 hover:underline">
               Esqueci a senha

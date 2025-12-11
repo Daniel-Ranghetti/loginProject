@@ -46,13 +46,20 @@ export class UsersController {
   ): Promise<LoginResponse> {
     const loginResponse = await this.usersService.loginUser(loginUserDto);
     
-    res.cookie('access_token', loginResponse.access_token, {
+    const cookieOptions: any = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 10 * 1000, // 10 segundos
-    });
-    
+      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    };
+
+        if (loginUserDto.keepLogged) {
+      cookieOptions.expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 dias
+    } else {
+      cookieOptions.maxAge = 5 * 1000; // 5 segundos
+
+    }
+
+    res.cookie('access_token', loginResponse.access_token, cookieOptions);
     return loginResponse;
   }
 
